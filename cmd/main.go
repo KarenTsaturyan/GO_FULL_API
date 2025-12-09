@@ -27,6 +27,7 @@ func main() {
 	// Handlers
 	link.NewLinkHandler(router, link.LinkHandlerDeps{
 		LinkRepository: linkRepository,
+		Config:         conf,
 	})
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
 		Config:      conf,
