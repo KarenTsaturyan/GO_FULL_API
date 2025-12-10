@@ -1,5 +1,9 @@
 package event
 
+const (
+	EventLinkVisited = "link.visited"
+)
+
 // reusable side effects
 type Event struct {
 	Type string

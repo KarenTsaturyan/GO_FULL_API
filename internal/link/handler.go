@@ -2,7 +2,7 @@ package link
 
 import (
 	"http_5/configs"
-	"http_5/pkg/di"
+	"http_5/pkg/event"
 	"http_5/pkg/middleware"
 	"http_5/pkg/req"
 	"http_5/pkg/res"
@@ -13,26 +13,20 @@ import (
 )
 
 type LinkHandlerDeps struct {
-	// Here LinkRepository can be dependency,
-	// because we are in Link package,
-	// but even here I think it's better to use Interfaces
 	LinkRepository *LinkRepository
-	StatRepository di.IStatRepository
 	Config         *configs.Config
-	// *stat.StatRepository: They don't need to be dependant
-	//  from each other, that's why we can  use interface instead
-	// importing whole pckg
+	EventBus       *event.EventBus
 }
 
 type LinkHandler struct {
 	LinkRepository *LinkRepository
-	StatRepository di.IStatRepository
+	EventBus       *event.EventBus
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	handler := &LinkHandler{
 		LinkRepository: deps.LinkRepository,
-		StatRepository: deps.StatRepository,
+		EventBus:       deps.EventBus,
 	}
 	router.HandleFunc("POST /link", handler.Create())
 	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update(), deps.Config))
@@ -127,7 +121,10 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		handler.StatRepository.AddClick(link.ID)
+		go handler.EventBus.Publish(event.Event{
+			Type: event.EventLinkVisited,
+			Data: link.ID,
+		})
 		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
 	}
 }
