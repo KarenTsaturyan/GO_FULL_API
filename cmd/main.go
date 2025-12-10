@@ -5,6 +5,7 @@ import (
 	"http_5/configs"
 	"http_5/internal/auth"
 	"http_5/internal/link"
+	"http_5/internal/stat"
 	"http_5/internal/user"
 	"http_5/pkg/db"
 	"http_5/pkg/middleware"
@@ -16,10 +17,12 @@ func main() {
 	db := db.NewDb(conf)
 	// custom mux server instead of default http
 	router := http.NewServeMux()
+	// eventBus := event.NewEventBus()
 
 	// Repositories
 	linkRepository := link.NewLinkRepository(db)
 	userRepository := user.NewUserRepository(db)
+	statRepository := stat.NewStatRepository(db)
 
 	// Services
 	authService := auth.NewAuthService(userRepository)
@@ -27,6 +30,7 @@ func main() {
 	// Handlers
 	link.NewLinkHandler(router, link.LinkHandlerDeps{
 		LinkRepository: linkRepository,
+		StatRepository: statRepository,
 		Config:         conf,
 	})
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
