@@ -42,6 +42,10 @@ func main() {
 		Config:      conf,
 		AuthService: authService,
 	})
+	stat.NewStatHandler(router, stat.StatHandlerDeps{
+		StatRepository: statRepository,
+		Config:         conf,
+	})
 
 	// Middlewares
 	stack := middleware.Chain(
